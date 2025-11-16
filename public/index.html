@@ -91,50 +91,44 @@
             document.querySelectorAll('.error').forEach(el => el.textContent = '');
             document.getElementById('success-message').style.display = 'none';
             
-            const formData = new FormData(e.target);
+            // Get form data
+            const formData = {
+                fullName: document.getElementById('fullName').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                rollNo: document.getElementById('rollNo').value,
+                branch: document.getElementById('branch').value,
+                useful: document.querySelector('input[name="useful"]:checked')?.value || '',
+                rating: document.getElementById('rating').value,
+                suggestions: document.getElementById('suggestions').value
+            };
             
             try {
-                console.log('Submitting form...');
                 const response = await fetch('/submit', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
+                        'Content-Type': 'application/json'
                     },
-                    body: new URLSearchParams(formData)
+                    body: JSON.stringify(formData)
                 });
-                console.log('Response received:', response.status);
                 
                 const result = await response.json();
                 
                 if (result.success) {
                     document.getElementById('success-message').textContent = result.message;
                     document.getElementById('success-message').style.display = 'block';
-                    e.target.reset();
+                    document.getElementById('feedbackForm').reset();
                 } else {
-                    // Display errors below each field
                     Object.keys(result.errors).forEach(field => {
                         const errorElement = document.getElementById(field + '-error');
                         if (errorElement) {
                             errorElement.textContent = result.errors[field];
                         }
                     });
-                    
-                    // Restore form data
-                    Object.keys(result.data).forEach(field => {
-                        const element = document.querySelector(`[name="${field}"]`);
-                        if (element) {
-                            if (element.type === 'radio') {
-                                const radio = document.querySelector(`[name="${field}"][value="${result.data[field]}"]`);
-                                if (radio) radio.checked = true;
-                            } else {
-                                element.value = result.data[field];
-                            }
-                        }
-                    });
                 }
             } catch (error) {
-                console.error('Fetch error:', error);
-                alert('Network error occurred');
+                console.error('Error:', error);
+                alert('Submission failed. Please try again.');
             }
         });
     </script>
